@@ -5,8 +5,7 @@
  * about permitted and prohibited uses of this code.
  */
 
-#pragma comment(lib, "WinRing0/WinRing0.lib")
-#pragma comment(lib, "WinRing0/WinRing0x64.lib")
+#include <cstdio>
 
 #include "WinRing0.h"
 #include "StringUtils.h"
@@ -14,88 +13,70 @@
 using std::exception;
 using std::string;
 
+uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress) {
+    uint32_t result;
+    char path[255]= "\0";
+    sprintf(path, "/proc/bus/pci/00/%d.%d", device, function);
 
-DWORD ReadPciConfig(DWORD device, DWORD function, DWORD regAddress)
-{
-	const DWORD pciAddress = ((device & 0x1f) << 3) | (function & 0x7);
+    FILE* pci = fopen(path, "r");
+    fseek(pci, function, SEEK_SET);
+    fread(&result, sizeof(result), 1, pci);
+    fclose(pci);
 
-	DWORD result;
-	if (!ReadPciConfigDwordEx(pciAddress, regAddress, &result))
-	{
-		string msg = "cannot read from PCI configuration space (F";
-		msg += StringUtils::ToString(function);
-		msg += "x";
-		msg += StringUtils::ToHexString(regAddress);
-		msg += ")";
-
-		throw exception(msg.c_str());
-	}
-
-	return result;
+    return result;
 }
 
-void WritePciConfig(DWORD device, DWORD function, DWORD regAddress, DWORD value)
-{
-	const DWORD pciAddress = ((device & 0x1f) << 3) | (function & 0x7);
+void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uint32_t value) {
+    char path[255]= "\0";
+    sprintf(path, "/proc/bus/pci/00/%d.%d", device, function);
 
-	if (!WritePciConfigDwordEx(pciAddress, regAddress, value))
-	{
-		string msg = "cannot write to PCI configuration space (F";
-		msg += StringUtils::ToString(function);
-		msg += "x";
-		msg += StringUtils::ToHexString(regAddress);
-		msg += ")";
-
-		throw exception(msg.c_str());
-	}
+    FILE* pci = fopen(path, "w");
+    fseek(pci, function, SEEK_SET);
+    fwrite(&value, sizeof(value), 1, pci);
+    fclose(pci);
 }
 
 
-QWORD Rdmsr(DWORD index)
-{
-	QWORD result;
-	PDWORD eax = (PDWORD)&result;
-	PDWORD edx = eax + 1;
+uint64_t Rdmsr(uint32_t index) {
+    uint64_t result;
 
-	if (!Rdmsr(index, eax, edx))
-	{
-		string msg = "cannot read from MSR (0x";
-		msg += StringUtils::ToHexString(index);
-		msg += ")";
+    FILE* msr = fopen("/dev/cpu/0/msr", "r");
+    fseek(msr, index, SEEK_SET);
+    fread(&result, sizeof(result), 1, msr);
+    fclose(msr);
 
-		throw exception(msg.c_str());
-	}
-
-	return result;
+    return result;
 }
 
-void Wrmsr(DWORD index, const QWORD& value)
-{
-	PDWORD eax = (PDWORD)&value;
-	PDWORD edx = eax + 1;
+int get_num_cpu() {
+    CpuidRegs regs = Cpuid(4);
+    return 1 + ((regs.eax>>26)&0xff);
+}
 
-	if (!Wrmsr(index, *eax, *edx))
-	{
-		string msg = "cannot write to MSR (0x";
-		msg += StringUtils::ToHexString(index);
-		msg += ")";
+void Wrmsr(uint32_t index, const uint64_t& value) {
+    char path[255]= "\0";
 
-		throw exception(msg.c_str());
-	}
+    for (int i = 0; i < get_num_cpu(); i++) {
+        sprintf(path, "/dev/cpu/%d/msr", i);
+        FILE* msr = fopen(path, "w");
+        fseek(msr, index, SEEK_SET);
+        fwrite(&value, sizeof(value), 1, msr);
+        fclose(msr);
+    }
 }
 
 
-CpuidRegs Cpuid(DWORD index)
-{
-	CpuidRegs result;
-	if (!Cpuid(index, &result.eax, &result.ebx, &result.ecx, &result.edx))
-	{
-		string msg = "cannot execute CPUID instruction (0x";
-		msg += StringUtils::ToHexString(index);
-		msg += ")";
+CpuidRegs Cpuid(uint32_t index) {
+    CpuidRegs result;
 
-		throw exception(msg.c_str());
-	}
+    FILE* cpuid = fopen("/dev/cpu/0/cpuid", "r");
+    fseek(cpuid, index, SEEK_SET);
+    fread(&(result.eax), sizeof(result.eax), 1, cpuid);
+    fread(&(result.ebx), sizeof(result.ebx), 1, cpuid);
+    fread(&(result.ecx), sizeof(result.ecx), 1, cpuid);
+    fread(&(result.edx), sizeof(result.edx), 1, cpuid);
+    fclose(cpuid);
 
-	return result;
+    return result;
 }
+

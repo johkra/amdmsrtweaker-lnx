@@ -7,43 +7,45 @@
 
 #pragma once
 
-#define WIN32_MEAN_AND_LEAN
-#include <windows.h>
-#undef min
-#undef max
+#include <stdint.h>
 
-#include "WinRing0/OlsApi.h"
+#include <exception>
+#include <string>
 
-
-typedef unsigned long long QWORD;
-
-struct CpuidRegs
-{
-	DWORD eax;
-	DWORD ebx;
-	DWORD ecx;
-	DWORD edx;
+struct CpuidRegs {
+    uint32_t eax;
+    uint32_t ebx;
+    uint32_t ecx;
+    uint32_t edx;
 };
 
-static const DWORD AMD_CPU_DEVICE = 0x18; // first AMD CPU
+static const uint32_t AMD_CPU_DEVICE = 0x18; // first AMD CPU
 
-DWORD ReadPciConfig(DWORD device, DWORD function, DWORD regAddress);
-void WritePciConfig(DWORD device, DWORD function, DWORD regAddress, DWORD value);
+uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress);
+void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uint32_t value);
 
-QWORD Rdmsr(DWORD index);
-void Wrmsr(DWORD index, const QWORD& value);
+uint64_t Rdmsr(uint32_t index);
+void Wrmsr(uint32_t index, const uint64_t& value);
 
-CpuidRegs Cpuid(DWORD index);
+CpuidRegs Cpuid(uint32_t index);
 
 
-template <typename T> DWORD GetBits(T value, unsigned char offset, unsigned char numBits)
-{
-	const T mask = (((T)1 << numBits) - (T)1); // 2^numBits - 1; after right-shift
-	return (DWORD)((value >> offset) & mask);
+template <typename T> uint32_t GetBits(T value, unsigned char offset, unsigned char numBits) {
+    const T mask = (((T)1 << numBits) - (T)1); // 2^numBits - 1; after right-shift
+    return (uint32_t)((value >> offset) & mask);
 }
 
-template <typename T> void SetBits(T& value, DWORD bits, unsigned char offset, unsigned char numBits)
-{
-	const T mask = (((T)1 << numBits) - (T)1) << offset; // 2^numBits - 1, shifted by offset to the left
-	value = (value & ~mask) | (((T)bits << offset) & mask);
+template <typename T> void SetBits(T& value, uint32_t bits, unsigned char offset, unsigned char numBits) {
+    const T mask = (((T)1 << numBits) - (T)1) << offset; // 2^numBits - 1, shifted by offset to the left
+    value = (value & ~mask) | (((T)bits << offset) & mask);
 }
+
+class ExceptionWithMessage: public std::exception {
+    const char* what;
+
+public:
+
+    ExceptionWithMessage(std::string msg) {
+        this->what = msg.c_str();
+    }
+};
