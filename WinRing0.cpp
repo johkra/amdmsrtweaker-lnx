@@ -42,6 +42,9 @@ void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uin
         perror("Failed to open pci device for writing");
         exit(-1);
     }
+    if(pwrite(pci, &value, sizeof(value), regAddress) != sizeof(value)) {
+        perror("Failed to write to pci device");
+    }
     close(pci);
 }
 
@@ -74,6 +77,9 @@ void Wrmsr(uint32_t index, const uint64_t& value) {
         if (msr == -1) {
             perror("Failed to open msr device for writing");
             exit(-1);
+        }
+        if(pwrite(msr, &value, sizeof(value), index) != sizeof(value)) {
+            perror("Failed to write to msr device");
         }
         close(msr);
     }
