@@ -28,10 +28,10 @@ uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress) 
 
 void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uint32_t value) {
     char path[255]= "\0";
-    sprintf(path, "/proc/bus/pci/00/%d.%d", device, function);
+    sprintf(path, "/proc/bus/pci/00/%x.%x", device, function);
 
     FILE* pci = fopen(path, "w");
-    fseek(pci, function, SEEK_SET);
+    fseek(pci, regAddress, SEEK_SET);
     fwrite(&value, sizeof(value), 1, pci);
     fclose(pci);
 }
