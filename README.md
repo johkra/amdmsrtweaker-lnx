@@ -1,28 +1,8 @@
-AmdMsrTweaker
-=============
+amdmsrt
+=======
 
-AmdMsrTweaker is a command line tool for Windows which allows to reprogram the 
-P-States used by various CPUs and APUs of AMD for their Cool&Quiet power 
-saving technology.
+amdmsrt (amdmsrtweaker-lnx) is a Linux port of the AmdMsrTweaker tool written by Martin Kinkelin and extended by Marcus Pollice.
 
-Usage
------
+It has so far only been tested on a Brazos system where reading and settings values appears to be working fine (I can change the voltage), but multiplicator calculation is broken. I believe this to be a bug of the original program, but this needs further testing.
 
-If you just want to use the tool, just download the precompiled binary and 
-follow the directions in the readme.txt file:
-* [AmdMsrTweaker v1.1](https://mega.co.nz/#!C0wk2ZQC!cMaQODozN40y3elVHbSCDkv-irVJ69HkeR5da2TT0gg)
-
-
-Development
------------
-
-The project is set up using Visual Studio 2010. Using the Express Edition is 
-also possible, though for compiling 64bit builds the respective Windows SDK is 
-needed.
-
-Additionally you need to download the WinRing0 library, which is not included in 
-the Git repository:
-* [WinRing0_lib.zip](https://mega.co.nz/#!StAywLoT!K0-wx0n-6_9npwH64hb1vmgBKbFqv660X38-9paSw84)
-
-Just check out the repository, extract the WinRing0_lib.zip file and then you 
-should be able to compile it in Visual Studio.
+Feel free to try it on other processors supported by AmdMsrTweaker (executing without parameters will only read values). Before using it you have to load the msr, pci and cpuid modules and the program has to be executed as root.
