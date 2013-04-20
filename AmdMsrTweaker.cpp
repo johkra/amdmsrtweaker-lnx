@@ -17,8 +17,6 @@ using std::endl;
 
 
 void PrintInfo(const Info& info);
-void WaitForKey();
-
 
 /// <summary>Entry point for the program.</summary>
 int main(int argc, const char* argv[]) {
@@ -26,7 +24,6 @@ int main(int argc, const char* argv[]) {
         Info info;
         if (!info.Initialize()) {
             cout << "ERROR: unsupported CPU" << endl;
-            WaitForKey();
             return 2;
         }
 
@@ -34,18 +31,15 @@ int main(int argc, const char* argv[]) {
             Worker worker(info);
 
             if (!worker.ParseParams(argc, argv)) {
-                WaitForKey();
                 return 3;
             }
 
             worker.ApplyChanges();
         } else {
             PrintInfo(info);
-            WaitForKey();
         }
     } catch (const std::exception& e) {
         cerr << "ERROR: " << e.what() << endl;
-        WaitForKey();
         return 10;
     }
 
@@ -110,11 +104,4 @@ void PrintInfo(const Info& info) {
             cout << "  NB_P" << i << ": " << pi.Multi << "x at " << info.DecodeVID(pi.VID) << "V" << endl;
         }
     }
-}
-
-
-void WaitForKey() {
-    cout << endl << "Press any key to exit... ";
-    getchar();
-    cout << endl;
 }
