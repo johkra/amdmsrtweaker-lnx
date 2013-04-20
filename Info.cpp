@@ -31,12 +31,12 @@ bool Info::Initialize() {
     uint32_t eax;
 
     // verify vendor = AMD ("AuthenticAMD")
-    regs = Cpuid(0);
+    regs = Cpuid(0x80000000);
     if (regs.ecx != 0x444d4163) // "DMAc"
         return false;
 
     // check family
-    regs = Cpuid(1);
+    regs = Cpuid(0x80000001);
     Family = GetBits(regs.eax, 8, 4) + GetBits(regs.eax, 20, 8);
     if (!(Family == 0x10 || Family == 0x12 || Family == 0x14 || Family == 0x15))
         return false;
@@ -57,7 +57,7 @@ bool Info::Initialize() {
         multiScaleFactor = 2.0;
 
     // number of physical cores
-    regs = Cpuid(8);
+    regs = Cpuid(0x80000008);
     NumCores = GetBits(regs.ecx, 0, 8) + 1;
 
     // number of hardware P-states
@@ -89,7 +89,7 @@ bool Info::Initialize() {
               : DecodeVID(maxVID));
 
     // is CBP (core performance boost) supported?
-    regs = Cpuid(7);
+    regs = Cpuid(0x80000007);
     IsBoostSupported = (GetBits(regs.edx, 9, 1) == 1);
 
     if (IsBoostSupported) {
