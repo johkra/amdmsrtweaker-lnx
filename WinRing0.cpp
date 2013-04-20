@@ -16,10 +16,10 @@ using std::string;
 uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress) {
     uint32_t result;
     char path[255]= "\0";
-    sprintf(path, "/proc/bus/pci/00/%d.%d", device, function);
+    sprintf(path, "/proc/bus/pci/00/%x.%x", device, function);
 
     FILE* pci = fopen(path, "r");
-    fseek(pci, function, SEEK_SET);
+    fseek(pci, regAddress, SEEK_SET);
     fread(&result, sizeof(result), 1, pci);
     fclose(pci);
 
@@ -49,8 +49,8 @@ uint64_t Rdmsr(uint32_t index) {
 }
 
 int get_num_cpu() {
-    CpuidRegs regs = Cpuid(4);
-    return 1 + ((regs.eax>>26)&0xff);
+    CpuidRegs regs = Cpuid(0x80000008);
+    return 1 + (regs.ecx&0xff);
 }
 
 void Wrmsr(uint32_t index, const uint64_t& value) {
