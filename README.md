@@ -3,6 +3,24 @@ amdmsrt
 
 amdmsrt (amdmsrtweaker-lnx) is a Linux port of the AmdMsrTweaker tool written by Martin Kinkelin and extended by Marcus Pollice.
 
-It has so far only been tested on a Brazos system where reading and settings values appears to be working fine (I can change the voltage), but multiplicator calculation is broken. I believe this to be a bug of the original program, but this needs further testing.
+It has been tested with a 14h (AMD E-350) and a 15h (AMD A10-5700) processor, but should work with all processors supported by AmdMsrTweaker. (Fam 10h-15h)
 
-Feel free to try it on other processors supported by AmdMsrTweaker (executing without parameters will only read values). Before using it you have to load the msr, pci and cpuid modules and the program has to be executed as root.
+Changes to frequency will not be reflected by /proc/cpuinfo, but a quick benchmark such as "openssl speed sha1" should show a speed difference.
+
+Compilation
+-----------
+
+Clone the repo and make sure you have gcc and make installed. Then execute "make" in the cloned directory. Optionally copy the file "amdmsrt" to a directory in $PATH such as /usr/bin or /usr/local/bin.
+
+Usage
+-----
+
+Make sure you have the msr and cpuid modules loaded. ("modprobe msr"/"modprobe cpuid" as root) The program will otherwise exit with a corresponding error message.
+
+See the file "readme.txt" for usage examples. The program has to executed as root and the executable is called "amdmsrt".
+
+TODO
+----
+
+- Proper documentation
+- Find a way to modify GPU p-states for Trinity. (10W more in idle on Linux compared to Windows, probably caused by missing Linux PowerPlay support for Trinity with the open drivers.)
