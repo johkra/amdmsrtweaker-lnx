@@ -6,6 +6,10 @@
  */
 
 #include <cstdio>
+#include <cstdlib>
+
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "WinRing0.h"
 #include "StringUtils.h"
@@ -18,10 +22,13 @@ uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress) 
     char path[255]= "\0";
     sprintf(path, "/proc/bus/pci/00/%x.%x", device, function);
 
-    FILE* pci = fopen(path, "r");
-    fseek(pci, regAddress, SEEK_SET);
-    fread(&result, sizeof(result), 1, pci);
-    fclose(pci);
+    int pci = open(path, O_RDONLY);
+    if (pci == -1) {
+        perror("Failed to open pci device for reading");
+        exit(-1);
+    }
+    pread(pci, &result, sizeof(result), regAddress);
+    close(pci);
 
     return result;
 }
@@ -30,20 +37,25 @@ void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uin
     char path[255]= "\0";
     sprintf(path, "/proc/bus/pci/00/%x.%x", device, function);
 
-    FILE* pci = fopen(path, "w");
-    fseek(pci, regAddress, SEEK_SET);
-    fwrite(&value, sizeof(value), 1, pci);
-    fclose(pci);
+    int pci = open(path, O_WRONLY);
+    if (pci == -1) {
+        perror("Failed to open pci device for writing");
+        exit(-1);
+    }
+    close(pci);
 }
 
 
 uint64_t Rdmsr(uint32_t index) {
     uint64_t result;
 
-    FILE* msr = fopen("/dev/cpu/0/msr", "r");
-    fseek(msr, index, SEEK_SET);
-    fread(&result, sizeof(result), 1, msr);
-    fclose(msr);
+    int msr = open("/dev/cpu/0/msr", O_RDONLY);
+    if (msr == -1) {
+        perror("Failed to open msr device for reading");
+        exit(-1);
+    }
+    pread(msr, &result, sizeof(result), index);
+    close(msr);
 
     return result;
 }
@@ -58,10 +70,12 @@ void Wrmsr(uint32_t index, const uint64_t& value) {
 
     for (int i = 0; i < get_num_cpu(); i++) {
         sprintf(path, "/dev/cpu/%d/msr", i);
-        FILE* msr = fopen(path, "w");
-        fseek(msr, index, SEEK_SET);
-        fwrite(&value, sizeof(value), 1, msr);
-        fclose(msr);
+        int msr = open(path, O_WRONLY);
+        if (msr == -1) {
+            perror("Failed to open msr device for writing");
+            exit(-1);
+        }
+        close(msr);
     }
 }
 
@@ -70,6 +84,10 @@ CpuidRegs Cpuid(uint32_t index) {
     CpuidRegs result;
 
     FILE* cpuid = fopen("/dev/cpu/0/cpuid", "r");
+    if (cpuid == NULL) {
+        perror("Failed to open cpuid device for reading");
+        exit(-1);
+    }
     fseek(cpuid, index, SEEK_SET);
     fread(&(result.eax), sizeof(result.eax), 1, cpuid);
     fread(&(result.ebx), sizeof(result.ebx), 1, cpuid);
