@@ -7,6 +7,14 @@ It has been tested with a 14h (AMD E-350) and a 15h (AMD A10-5700) processor, bu
 
 Changes to frequency will not be reflected by /proc/cpuinfo, but a quick benchmark such as "openssl speed sha1" should show a speed difference.
 
+Download
+--------
+
+You can download statically compiled executables from bintray. After downloading and extracting, you might have to make the file executable. You can do this with "chmod +x amdmsrt-amd64" (or "chmod +x amdmsrt-i386") in a shell or in the file properties if you use a graphical file manager.
+
+[32 bit executable](http://dl.bintray.com/content/johkra/amdmsrt/amdmsrt-i386.zip?direct) (sha1: cacf4a6ce93ee4dd9dadec43dd77687c5283acc8)
+[64 bit executable](http://dl.bintray.com/content/johkra/amdmsrt/amdmsrt-amd64.zip?direct) (sha1: d2c1b7b23a05555f38194c7228cd8732877b280e)
+
 Compilation
 -----------
 
